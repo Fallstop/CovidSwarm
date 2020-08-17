@@ -13,7 +13,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const appVersion = [1, 0, 0];
+const appVersion = [
+  1,
+  0,
+  0
+];
 
 void updateGPS() {
   print("Updating GPS location");
@@ -25,8 +29,7 @@ void updateGPS() {
       var deviceID = await _getDeviceID();
       var client = http.Client();
       try {
-        var uriResponse = await client.post(
-            'http://swarmapi.qrl.nz/location/' + deviceID.toString(),
+        var uriResponse = await client.post('http://swarmapi.qrl.nz/location/' + deviceID.toString(),
             body: jsonEncode({
               "covid_status": false,
               "latitude": location.latitude.toString(),
@@ -89,13 +92,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Completer<GoogleMapController> _controller = Completer();
   Set<Heatmap> _heatmaps = {};
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
-  final GlobalKey<ScaffoldState> _mapScaffoldKey =
-      new GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _mapScaffoldKey = new GlobalKey<ScaffoldState>();
   bool backgroundTaskEnabled = true;
   double currentZoom = 1;
   double heatmapZoom = 1;
 
-  bool heatmapVissable = true;
+  bool heatmapVisable = true;
   bool coronaCaseVissable = true;
 
   List<Marker> markers = [];
@@ -129,8 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Column(
                   children: [
                     new Image.asset("assets/logoAnimation.gif"),
-                    PaddedText(
-                        "\nLooking for space?\nLooking for crowds?\n\nSwarm let’s you know where others are and helps you stay safe.")
+                    PaddedText("\nLooking for space?\nLooking for crowds?\n\nSwarm let’s you know where others are and helps you stay safe.")
                   ],
                 )),
                 height: 420,
@@ -163,31 +164,26 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             body: TabBarView(
               physics: NeverScrollableScrollPhysics(),
-              children: [MapPage(this), Settings(this)],
+              children: [
+                MapPage(this),
+                Settings(this)
+              ],
             )));
   }
 
   Future<void> initPlatformState() async {
-    BackgroundFetch.configure(
-            BackgroundFetchConfig(
-                minimumFetchInterval: 30,
-                stopOnTerminate: false,
-                enableHeadless: true,
-                requiresBatteryNotLow: true,
-                requiresCharging: false,
-                requiresStorageNotLow: false,
-                requiresDeviceIdle: false,
-                requiredNetworkType: NetworkType.ANY), (String taskId) async {
+    BackgroundFetch.configure(BackgroundFetchConfig(minimumFetchInterval: 30, stopOnTerminate: false, enableHeadless: true, requiresBatteryNotLow: true, requiresCharging: false, requiresStorageNotLow: false, requiresDeviceIdle: false, requiredNetworkType: NetworkType.ANY), (String taskId) async {
       print("[BackgroundFetch], received $taskId]");
     })
-        .then((int status) =>
-            {print("[BackgroundFetch], configure success: $status")})
-        .catchError((e) => {print("[BackgroundFetch], configure failure: $e")});
+        .then((int status) => {
+              print("[BackgroundFetch], configure success: $status")
+            })
+        .catchError((e) => {
+              print("[BackgroundFetch], configure failure: $e")
+            });
 
     if (backgroundTaskEnabled) {
-      BackgroundFetch.start()
-          .then((value) => print("[BackgroundFetch] started, code $value"))
-          .catchError((err) {
+      BackgroundFetch.start().then((value) => print("[BackgroundFetch] started, code $value")).catchError((err) {
         print("[BackgroundFetch] error starting, code $err");
       });
     }
@@ -208,41 +204,30 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _refreshHeatmap() async {
-    print("Refreshing Heatmap, Scaled points radis: " +
-        (10 * currentZoom).round().toString());
+    print("Refreshing Heatmap, Scaled points radis: " + (10 * currentZoom).round().toString());
     print("Zoom in refresh heatmap function: " + currentZoom.toString());
     var points = await _getPoints();
     print("Server Points: " + points.toString());
-    print("Heat map Visibility: $heatmapVissable");
+    print("Heat map Visibility: $heatmapVisable");
     setState(() {
-      _heatmaps.add(Heatmap(
+      _heatmaps.add(
+        Heatmap(
           heatmapId: HeatmapId("people_tracking"),
           points: points,
-          radius: (10 * currentZoom).round().clamp(5, 50),
-          visible: heatmapVissable,
+          radius: (10 * currentZoom).round().clamp(10, 50),
+          visible: heatmapVisable,
           gradient: HeatmapGradient(
-              colors: <Color>[Colors.blue, Colors.red],
-              startPoints: <double>[0.2, 0.8])));
-    });
-
-    // controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
-  }
-
-  Future<void> _refeshCovidCases() async {
-    print("Refreshing Heatmap, Scaled points radis: " +
-        (10 * currentZoom).round().toString());
-    print("Zoom in refresh heatmap function: " + currentZoom.toString());
-    var points = await _getPoints();
-    print("Server Points: " + points.toString());
-    setState(() {
-      _heatmaps.add(Heatmap(
-          heatmapId: HeatmapId("people_tracking"),
-          points: points,
-          radius: (10 * currentZoom).round().clamp(5, 50),
-          visible: true,
-          gradient: HeatmapGradient(
-              colors: <Color>[Colors.blue, Colors.red],
-              startPoints: <double>[0.2, 0.8])));
+            colors: <Color>[
+              Colors.blue,
+              Colors.red
+            ],
+            startPoints: <double>[
+              0.2,
+              0.8
+            ],
+          ),
+        ),
+      );
     });
 
     // controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
@@ -254,18 +239,14 @@ class _MyHomePageState extends State<MyHomePage> {
     if (response.statusCode == 200) {
       print("Server responded with: " + response.body);
       var remoteVersionJson = jsonDecode(response.body);
-      print("Server major version is " +
-          remoteVersionJson["major_version"].toString());
-      return !(remoteVersionJson["major_version"] == appVersion[0] &&
-          remoteVersionJson["minor_version"] == appVersion[1] &&
-          remoteVersionJson["patch_version"] == appVersion[2]);
+      print("Server major version is " + remoteVersionJson["major_version"].toString());
+      return !(remoteVersionJson["major_version"] == appVersion[0] && remoteVersionJson["minor_version"] == appVersion[1] && remoteVersionJson["patch_version"] == appVersion[2]);
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
 
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content:
-            new Text('Failed to check version! Code: ${response.statusCode}'),
+        content: new Text('Failed to check version! Code: ${response.statusCode}'),
         duration: new Duration(seconds: 5),
       ));
     }
@@ -284,37 +265,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
       //Weight is based off how recent the data point is
       var pointTime = DateTime.parse(jsonGpsPoint["latest_time"]);
-      print("Time diff: " +
-          ((1 / ((currentTime.difference(pointTime).inSeconds) / 600)) * 10)
-              .round()
-              .toString());
-      var pointWeight =
-          ((1 / ((currentTime.difference(pointTime).inSeconds) / 600)) * 10)
-              .round();
+      print("Time diff: " + ((1 / ((currentTime.difference(pointTime).inSeconds) / 600)) * 10).round().toString());
+      var pointWeight = ((1 / ((currentTime.difference(pointTime).inSeconds) / 600)) * 10).round();
       if (pointWeight > 0) {
-        points.add(_createWeightedLatLng(
-            jsonGpsPoint["latitude"], jsonGpsPoint["longitude"], 1));
+        points.add(_createWeightedLatLng(jsonGpsPoint["latitude"], jsonGpsPoint["longitude"], pointWeight));
       }
     }
     return points;
-  }
-
-  _getCovidCases() async {
-    print("Geting server points");
-    final response = await http.get('http://swarmapi.qrl.nz/location');
-    if (response.statusCode == 200) {
-      print("Server responded with: " + response.body);
-      var locations = json.decode(response.body);
-    } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content:
-            new Text('Failed to contact server! Code: ${response.statusCode}'),
-        duration: new Duration(seconds: 5),
-      ));
-    }
   }
 
   WeightedLatLng _createWeightedLatLng(double lat, double lng, int weight) {
@@ -332,8 +289,7 @@ class _MyHomePageState extends State<MyHomePage> {
       // then throw an exception.
 
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content:
-            new Text('Failed to contact server! Code: ${response.statusCode}'),
+        content: new Text('Failed to contact server! Code: ${response.statusCode}'),
         duration: new Duration(seconds: 5),
       ));
       return "[]";
@@ -344,15 +300,14 @@ class _MyHomePageState extends State<MyHomePage> {
     final response = await http.get('http://swarmapi.qrl.nz/covid');
 
     if (response.statusCode == 200) {
-      print("Server responded with: " + response.body);
+      print("Server API for covid cases responded with: " + response.body);
       return response.body;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
 
       _scaffoldKey.currentState.showSnackBar(SnackBar(
-        content:
-            new Text('Failed to contact server! Code: ${response.statusCode}'),
+        content: new Text('Failed to contact server! Code: ${response.statusCode}'),
         duration: new Duration(seconds: 5),
       ));
       return "[]";
@@ -366,24 +321,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     var response = await _getServerCovid();
-    print("Server response: $response");
     var parsed = json.decode(response);
 
     markers = [];
 
     for (var point in parsed) {
-      markers.add(Marker(
-          markerId: MarkerId(point['name']),
-          position: LatLng(point['latitude'], point['longitude']),
-          onTap: () => {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(point["name"]),
-                    content: Text("Confirmed Cases: ${point['confirmed']}"),
-                  ),
-                )
-              }));
+      if (int.parse(point['confirmed']) != 0) {
+        markers.add(Marker(
+            markerId: MarkerId(point['name']),
+            position: LatLng(point['latitude'], point['longitude']),
+            onTap: () => {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(point["name"]),
+                      content: Text("Confirmed Cases: ${point['confirmed']}"),
+                    ),
+                  )
+                }));
+      }
       print('added marker for ${point['name']}');
     }
     setState(() {});
@@ -402,8 +358,7 @@ Future<int> _getDeviceID() async {
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
-      print("Failed to reg with server, status:" +
-          response.statusCode.toString());
+      print("Failed to reg with server, status:" + response.statusCode.toString());
       return -1;
     }
   }
@@ -425,17 +380,11 @@ class Settings extends StatelessWidget {
                 homePage.setState(() {
                   homePage.backgroundTaskEnabled = value;
                   if (homePage.backgroundTaskEnabled) {
-                    BackgroundFetch.start()
-                        .then((value) =>
-                            print("[BackgroundFetch] started, code $value"))
-                        .catchError((err) {
+                    BackgroundFetch.start().then((value) => print("[BackgroundFetch] started, code $value")).catchError((err) {
                       print("[BackgroundFetch] error starting, code $err");
                     });
                   } else {
-                    BackgroundFetch.stop()
-                        .then((value) =>
-                            print("[BackgroundFetch] stopped, code $value"))
-                        .catchError((err) {
+                    BackgroundFetch.stop().then((value) => print("[BackgroundFetch] stopped, code $value")).catchError((err) {
                       print("[BackgroundFetch] error stopping, code $err");
                     });
                   }
@@ -463,8 +412,7 @@ class Settings extends StatelessWidget {
         MaterialButton(
           child: PaddedText("Register as new device"),
           onPressed: () async {
-            final SharedPreferences prefs =
-                await SharedPreferences.getInstance();
+            final SharedPreferences prefs = await SharedPreferences.getInstance();
             prefs.clear();
           },
         ),
@@ -497,7 +445,26 @@ class Settings extends StatelessWidget {
                         onPressed: () {
                           Navigator.of(context).pop();
                         },
-                      )
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              return showDialog(
+                context: context,
+                barrierDismissible: true,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('No new updates available'),
+                    content: Text("You have the latest version of the app."),
+                    actions: <Widget>[
+                      FlatButton(
+                        child: Text('close'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
                     ],
                   );
                 },
@@ -505,12 +472,7 @@ class Settings extends StatelessWidget {
             }
           },
         ),
-        PaddedText("App Version: " +
-            appVersion[0].toString() +
-            "." +
-            appVersion[1].toString() +
-            "." +
-            appVersion[2].toString())
+        PaddedText("App Version: " + appVersion[0].toString() + "." + appVersion[1].toString() + "." + appVersion[2].toString())
       ],
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -545,7 +507,7 @@ class MapPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        bool heatmapVissable = parent.heatmapVissable;
+        bool heatmapVisable = parent.heatmapVisable;
         bool coronaVisable = parent.coronaCaseVissable;
         return AlertDialog(
           title: new Text("Select thing to show on map"),
@@ -558,13 +520,13 @@ class MapPage extends StatelessWidget {
                   children: [
                     PaddedText("Show heat map"),
                     Switch(
-                      value: heatmapVissable,
+                      value: heatmapVisable,
                       onChanged: (value) {
                         parent.setState(() {
-                          parent.heatmapVissable = value;
+                          parent.heatmapVisable = value;
                           parent._refreshHeatmap();
                         });
-                        heatmapVissable = value;
+                        heatmapVisable = value;
                         Navigator.of(context).pop();
                         _showDialog(context);
                       },

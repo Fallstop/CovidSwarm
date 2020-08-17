@@ -1,0 +1,49 @@
+.vscode/
+backend/config.py
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+CovidSwarm/.DS_Store
+CovidSwarm/.atom/
+CovidSwarm/.buildlog/
+CovidSwarm/.history
+CovidSwarm/.svn/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+CovidSwarm/.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+CovidSwarm/.dart_tool/
+CovidSwarm/.flutter-plugins
+CovidSwarm/.flutter-plugins-dependencies
+CovidSwarm/.packages
+CovidSwarm/.pub-cache/
+CovidSwarm/.pub/
+CovidSwarm//build/
+
+# Web related
+CovidSwarm/lib/generated_plugin_registrant.dart
+
+# Symbolication related
+CovidSwarm/app.*.symbols
+
+# Obfuscation related
+CovidSwarm/app.*.map.json
+
+# Exceptions to above rules.
+!CovidSwarm/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
+
+*.xlsx
+*.csv

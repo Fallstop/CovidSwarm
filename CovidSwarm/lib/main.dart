@@ -1,12 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 
-import 'package:collection/collection.dart';
 import 'package:CovidSwarm/get_location.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/rendering.dart';
-import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -20,6 +16,7 @@ const appVersion = [
   0,
   0
 ];
+
 const String APIServerURL = "http://swarmapi.qrl.nz/";
 
 void updateGPS() {
@@ -118,11 +115,15 @@ class _MyHomePageState extends State<MyHomePage> {
     Timer.periodic(fiveMinutes, (timer) {
       setState(() {
         _refreshHeatmap();
-        loadPoints();
       });
     });
     BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5), 'assets/CovidIcon.png').then((onValue) {
       pinLocationIcon = onValue;
+    });
+    SharedPreferences.getInstance().then((prefs) => {
+      if (prefs.containsKey("backgroundTask")) {
+        backgroundTaskEnabled = prefs.getBool("backgroundTask")
+      }
     });
   }
 
@@ -145,7 +146,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     PaddedText("\nLooking for space?\nLooking for crowds?\n\nSwarm let’s you know where others are and helps you stay safe.")
                   ],
                 )),
-                height: 420,
+                height: 460,
               ),
               actions: <Widget>[
                 FlatButton(
@@ -215,6 +216,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _refreshHeatmap() async {
+    _refreshCovidMarkers();
     print("Refreshing Heatmap, Scaled points radis: " + (10 * currentZoom).round().toString());
     print("Zoom in refresh heatmap function: " + currentZoom.toString());
     var points = await _getPoints();
@@ -336,7 +338,7 @@ class _MyHomePageState extends State<MyHomePage> {
   //   return (await fi.image.toByteData(format: ui.ImageByteFormat.png)).buffer.asUint8List();
   // }
 
-  Future<void> loadPoints() async {
+  Future<void> _refreshCovidMarkers() async {
     if (!coronaCaseVissable) {
       markers = [];
       return;
@@ -400,6 +402,7 @@ class Settings extends StatelessWidget {
             Switch(
               value: homePage.backgroundTaskEnabled,
               onChanged: (value) {
+                SharedPreferences.getInstance().then((prefs) => prefs.setBool("backgroundTask", value));
                 homePage.setState(() {
                   homePage.backgroundTaskEnabled = value;
                   if (homePage.backgroundTaskEnabled) {
@@ -566,7 +569,7 @@ class MapPage extends StatelessWidget {
                       onChanged: (value) {
                         parent.setState(() {
                           parent.coronaCaseVissable = value;
-                          parent.loadPoints();
+                          parent._refreshCovidMarkers();
                         });
                         coronaVisable = value;
                         Navigator.of(context).pop();
@@ -622,7 +625,7 @@ class MapPage extends StatelessWidget {
               onPressed: () {
                 parent._refreshHeatmap;
                 parent.setState(() {
-                  parent.loadPoints();
+                  parent._refreshHeatmap();
                 });
               },
               label: Text("Refresh"),

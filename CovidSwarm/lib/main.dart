@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:collection/collection.dart';
 import 'package:CovidSwarm/get_location.dart';
@@ -18,6 +20,7 @@ const appVersion = [
   0,
   0
 ];
+const String APIServerURL = "http://swarmapi.qrl.nz/";
 
 void updateGPS() {
   print("Updating GPS location");
@@ -29,7 +32,7 @@ void updateGPS() {
       var deviceID = await _getDeviceID();
       var client = http.Client();
       try {
-        var uriResponse = await client.post('http://swarmapi.qrl.nz/location/' + deviceID.toString(),
+        var uriResponse = await client.post(APIServerURL + 'location/' + deviceID.toString(),
             body: jsonEncode({
               "covid_status": false,
               "latitude": location.latitude.toString(),
@@ -91,14 +94,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Completer<GoogleMapController> _controller = Completer();
   Set<Heatmap> _heatmaps = {};
+
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   final GlobalKey<ScaffoldState> _mapScaffoldKey = new GlobalKey<ScaffoldState>();
+
   bool backgroundTaskEnabled = true;
+
   double currentZoom = 1;
   double heatmapZoom = 1;
 
   bool heatmapVisable = true;
   bool coronaCaseVissable = true;
+
+  BitmapDescriptor pinLocationIcon;
 
   List<Marker> markers = [];
 
@@ -112,6 +120,9 @@ class _MyHomePageState extends State<MyHomePage> {
         _refreshHeatmap();
         loadPoints();
       });
+    });
+    BitmapDescriptor.fromAssetImage(ImageConfiguration(devicePixelRatio: 2.5), 'assets/CovidIcon.png').then((onValue) {
+      pinLocationIcon = onValue;
     });
   }
 
@@ -209,32 +220,36 @@ class _MyHomePageState extends State<MyHomePage> {
     var points = await _getPoints();
     print("Server Points: " + points.toString());
     print("Heat map Visibility: $heatmapVisable");
-    setState(() {
-      _heatmaps.add(
-        Heatmap(
-          heatmapId: HeatmapId("people_tracking"),
-          points: points,
-          radius: (10 * currentZoom).round().clamp(10, 50),
-          visible: heatmapVisable,
-          gradient: HeatmapGradient(
-            colors: <Color>[
-              Colors.blue,
-              Colors.red
-            ],
-            startPoints: <double>[
-              0.2,
-              0.8
-            ],
+    if (points.length != 0) {
+      setState(() {
+        _heatmaps.add(
+          Heatmap(
+            heatmapId: HeatmapId("people_tracking"),
+            points: points,
+            radius: (10 * currentZoom).round().clamp(10, 50),
+            visible: heatmapVisable,
+            gradient: HeatmapGradient(
+              colors: <Color>[
+                Colors.blue,
+                Colors.red
+              ],
+              startPoints: <double>[
+                0.2,
+                0.8
+              ],
+            ),
           ),
-        ),
-      );
-    });
+        );
+      });
+    } else {
+      print("Server responded with no points");
+    }
 
     // controller.animateCamera(CameraUpdate.newCameraPosition(_kLake));
   }
 
   Future<bool> _checkAppVersion() async {
-    final response = await http.get('http://swarmapi.qrl.nz/app/version');
+    final response = await http.get(APIServerURL + 'app/version');
 
     if (response.statusCode == 200) {
       print("Server responded with: " + response.body);
@@ -279,7 +294,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<String> _getServerGPS() async {
-    final response = await http.get('http://swarmapi.qrl.nz/location');
+    final response = await http.get(APIServerURL + 'location');
 
     if (response.statusCode == 200) {
       print("Server responded with: " + response.body);
@@ -297,7 +312,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<String> _getServerCovid() async {
-    final response = await http.get('http://swarmapi.qrl.nz/covid');
+    final response = await http.get(APIServerURL + 'covid');
 
     if (response.statusCode == 200) {
       print("Server API for covid cases responded with: " + response.body);
@@ -314,6 +329,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  // Future<Uint8List> getBytesFromAsset(String path, int width) async {
+  //   ByteData data = await rootBundle.load(path);
+  //   ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(), targetWidth: width);
+  //   ui.FrameInfo fi = await codec.getNextFrame();
+  //   return (await fi.image.toByteData(format: ui.ImageByteFormat.png)).buffer.asUint8List();
+  // }
+
   Future<void> loadPoints() async {
     if (!coronaCaseVissable) {
       markers = [];
@@ -322,14 +344,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
     var response = await _getServerCovid();
     var parsed = json.decode(response);
-
+    var markerIcon = pinLocationIcon;
     markers = [];
 
     for (var point in parsed) {
-      if (int.parse(point['confirmed']) != 0) {
+      if (point['confirmed'] != 0) {
         markers.add(Marker(
             markerId: MarkerId(point['name']),
             position: LatLng(point['latitude'], point['longitude']),
+            icon: markerIcon,
             onTap: () => {
                   showDialog(
                     context: context,
@@ -351,7 +374,7 @@ Future<int> _getDeviceID() async {
   if (prefs.containsKey("device_id")) {
     return prefs.getInt("device_id");
   } else {
-    final response = await http.get('http://swarmapi.qrl.nz/device');
+    final response = await http.get(APIServerURL + 'device');
     if (response.statusCode == 200) {
       prefs.setInt("device_id", int.parse(response.body));
       return int.parse(response.body);

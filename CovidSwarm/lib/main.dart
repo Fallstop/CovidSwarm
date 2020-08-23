@@ -14,7 +14,7 @@ import 'package:url_launcher/url_launcher.dart';
 const appVersion = [
   1,
   0,
-  0
+  1
 ];
 
 const String APIServerURL = "http://swarmapi.qrl.nz/";
@@ -222,13 +222,16 @@ class _MyHomePageState extends State<MyHomePage> {
     var points = await _getPoints();
     print("Server Points: " + points.toString());
     print("Heat map Visibility: $heatmapVisable");
+
     if (points.length != 0) {
       setState(() {
+        _heatmaps.clear();
         _heatmaps.add(
           Heatmap(
             heatmapId: HeatmapId("people_tracking"),
             points: points,
-            radius: (10 * currentZoom).round().clamp(10, 50),
+            radius: (5 * currentZoom).round().clamp(10, 50),
+            opacity: 0.7,
             visible: heatmapVisable,
             gradient: HeatmapGradient(
               colors: <Color>[
@@ -237,7 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
               startPoints: <double>[
                 0.2,
-                0.8
+                0.9
               ],
             ),
           ),

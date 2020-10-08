@@ -4,6 +4,7 @@ from flask.json import JSONEncoder
 from datetime import date
 import json
 import pymysql
+import os
 
 try:
     import config
@@ -165,5 +166,6 @@ def get_latest_app_version():
         return False
 
 
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)
+port = int(os.environ.get('PORT', 8080))
+if __name__ == '__main__':
+    app.run(threaded=True, host='0.0.0.0', port=port)

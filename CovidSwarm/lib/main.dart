@@ -14,10 +14,10 @@ import 'package:url_launcher/url_launcher.dart';
 const appVersion = [
   1,
   0,
-  1
+  2
 ];
 
-const String APIServerURL = "http://swarmapi.qrl.nz/";
+const String APIServerURL = "https://swarmapi.qrl.nz/";
 
 void updateGPS() {
   print("Updating GPS location");
@@ -31,6 +31,11 @@ void updateGPS() {
       try {
         var uriResponse = await client.post(APIServerURL + 'location/' + deviceID.toString(),
             body: jsonEncode({
+              "covid_status": false,
+              "latitude": location.latitude.toString(),
+              "longitude": location.longitude.toString()
+            }));
+          print("URL: "+APIServerURL + 'location/'+ "; Data: "+jsonEncode({
               "covid_status": false,
               "latitude": location.latitude.toString(),
               "longitude": location.longitude.toString()
